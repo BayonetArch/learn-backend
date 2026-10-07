@@ -1,9 +1,14 @@
 import { readFile } from "fs";
-import { createServer } from "http";
+import { createServer, IncomingMessage, ServerResponse } from "node:http";
 
 const PORT = 3000;
 
-function sendFavicon(res) {
+type requestJson = {
+  name: string;
+  message: string;
+};
+
+function sendFavicon(res: ServerResponse) {
   readFile("./favicon.ico", (e, data) => {
     if (e) {
       console.error(
@@ -22,36 +27,35 @@ function sendFavicon(res) {
 
     res.writeHead(200, { "Content-Type": "image/x-icon" });
     res.end(data);
-    console.log("Sent the favicon.ico file");
+    console.log("Sent favicon.ico");
   });
 }
 
 /* returns null on error */
-function handlePostRequest(req, res) {
-  let chunks = [];
+function handlePostRequest(req: IncomingMessage, res: ServerResponse) {
+  let chunks: Buffer[] = [];
   if (!req.headers["content-type"]?.includes("application/json")) {
     res.writeHead(400);
     res.end("Invalid Content-Type");
     return null;
   }
 
-  req.on("data", (chunk) => {
+  req.on("data", (chunk: Buffer) => {
     chunks.push(chunk);
-    console.log("Chunk", chunk);
   });
 
   req.on("end", () => {
-    chunks = Buffer.concat(chunks).toString();
+    const body = Buffer.concat(chunks).toString();
 
-    let parsed;
+    let parsedData: unknown;
     try {
-      parsed = JSON.parse(chunks);
+      parsedData = JSON.parse(body);
     } catch {
       res.writeHead(400, { "Content-Type": "text/plain" });
       res.end("Invalid JSON");
       return null;
     }
-    if (parsed === null) {
+    if (parsedData === null) {
       res.writeHead(400, { "Content-Type": "application/json" });
       res.end(
         JSON.stringify({
@@ -62,27 +66,32 @@ function handlePostRequest(req, res) {
       return null;
     }
 
-    if (parsed.name === undefined || parsed.message === undefined) {
+    parsedData;
+    console.log(parsedData);
+
+    const data = parsedData as Record<string, unknown>;
+
+    if (typeof data.name !== "string" || typeof data.message !== "string") {
       res.writeHead(400, { "Content-Type": "application/json" });
       res.end(
         JSON.stringify({
           ok: false,
-          error: "name and message are required field in JSON",
+          error: "name and message are required fields in JSON",
         }),
       );
-      return null;
+      return;
     }
 
-    console.log("Got Name <-", parsed.name);
-    console.log("Got Message <-", parsed.message);
+    console.log("Got Name <-", data.name);
+    console.log("Got Message <-", data.message);
 
     res.writeHead(201, { "Content-Type": "application/json" });
-    res.end(JSON.stringify({ ok: true, data: parsed }));
-    console.log("Sent ->", parsed);
+    res.end(JSON.stringify({ ok: true, data }));
+    console.log("Sent ->", data);
   });
 }
 
-function requestHandler(req, res) {
+function requestHandler(req: IncomingMessage, res: ServerResponse) {
   console.log(req.method, req.url);
 
   if (req.url === "/" && req.method === "GET") {
@@ -100,7 +109,7 @@ function requestHandler(req, res) {
 function main() {
   const server = createServer(requestHandler);
 
-  server.on("error", (e) => {
+  server.on("error", (e: NodeJS.ErrnoException) => {
     if (e.code === "EADDRINUSE") {
       console.error("Port " + PORT + " is already in use");
       console.log("trying another port..");
@@ -111,6 +120,7 @@ function main() {
   });
 
   server.listen(PORT, () => {
+    console.log("----------------------------------------");
     console.log("Server running on http://localhost:" + PORT);
   });
 }
