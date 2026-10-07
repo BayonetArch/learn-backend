@@ -37,54 +37,49 @@ function handlePostRequest(req, res) {
 
   req.on("data", (chunk) => {
     chunks.push(chunk);
+    console.log("Chunk", chunk);
   });
 
-  req.on(
-    "end",
-    () => {
-      setTimeout(() => {
-        chunks = Buffer.concat(chunks).toString();
+  req.on("end", () => {
+    chunks = Buffer.concat(chunks).toString();
 
-        let parsed;
-        try {
-          parsed = JSON.parse(chunks);
-        } catch {
-          res.writeHead(400, { "Content-Type": "text/plain" });
-          res.end("Invalid JSON");
-          return null;
-        }
-        if (parsed === null) {
-          res.writeHead(400, { "Content-Type": "application/json" });
-          res.end(
-            JSON.stringify({
-              ok: false,
-              error: "Invalid JSON - null is not allowed",
-            }),
-          );
-          return null;
-        }
+    let parsed;
+    try {
+      parsed = JSON.parse(chunks);
+    } catch {
+      res.writeHead(400, { "Content-Type": "text/plain" });
+      res.end("Invalid JSON");
+      return null;
+    }
+    if (parsed === null) {
+      res.writeHead(400, { "Content-Type": "application/json" });
+      res.end(
+        JSON.stringify({
+          ok: false,
+          error: "Invalid JSON - null is not allowed",
+        }),
+      );
+      return null;
+    }
 
-        if (parsed.name === undefined || parsed.message === undefined) {
-          res.writeHead(400, { "Content-Type": "application/json" });
-          res.end(
-            JSON.stringify({
-              ok: false,
-              error: "name and message are required field in JSON",
-            }),
-          );
-          return null;
-        }
+    if (parsed.name === undefined || parsed.message === undefined) {
+      res.writeHead(400, { "Content-Type": "application/json" });
+      res.end(
+        JSON.stringify({
+          ok: false,
+          error: "name and message are required field in JSON",
+        }),
+      );
+      return null;
+    }
 
-        console.log("Got Name <-", parsed.name);
-        console.log("Got Message <-", parsed.message);
+    console.log("Got Name <-", parsed.name);
+    console.log("Got Message <-", parsed.message);
 
-        res.writeHead(201, { "Content-Type": "application/json" });
-        res.end(JSON.stringify({ ok: true, data: parsed }));
-        console.log("Sent ->", parsed);
-      });
-    },
-    5000,
-  );
+    res.writeHead(201, { "Content-Type": "application/json" });
+    res.end(JSON.stringify({ ok: true, data: parsed }));
+    console.log("Sent ->", parsed);
+  });
 }
 
 function requestHandler(req, res) {
