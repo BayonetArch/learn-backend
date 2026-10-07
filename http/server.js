@@ -29,7 +29,7 @@ function sendFavicon(res) {
 /* returns null on error */
 function handlePostRequest(req, res) {
   let chunks = [];
-  if (!req.headers["content-type"].includes("application/json")) {
+  if (!req.headers["content-type"]?.includes("application/json")) {
     res.writeHead(400);
     res.end("Invalid Content-Type");
     return null;
@@ -83,7 +83,7 @@ function handlePostRequest(req, res) {
 }
 
 function requestHandler(req, res) {
-  console.log("request", req.url, req.method);
+  console.log(req.method, req.url);
 
   if (req.url === "/" && req.method === "GET") {
     res.end("Hello, World!");
@@ -111,8 +111,7 @@ function main() {
   });
 
   server.listen(PORT, () => {
-    console.log("---------------------------------------------");
-    console.log("Listening on http://localhost:" + PORT);
+    console.log("Server running on http://localhost:" + PORT);
   });
 }
 
