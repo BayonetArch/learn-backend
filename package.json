@@ -1,0 +1,5 @@
+{
+  "name": "backend-learning",
+  "private": true,
+  "workspaces": ["packages/*"]
+}
