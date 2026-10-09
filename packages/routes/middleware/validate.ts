@@ -7,13 +7,13 @@ export default function validateBody(schema: z.ZodType) {
 
     if (!result.success) {
       res.status(400).json({
-        error: `Validation failed: make sure that id, name and comment field are present`,
+        error: `Validation failed: make sure that name and comment field are present`,
         issues: result.error.issues.map((i) => ({
           field: i.path.join(""),
           message: i.message,
         })),
       });
-      console.error("Could not valid the request Body\n", result.error);
+      console.error("Could not validate the request Body\n", result.error);
       return;
     }
 

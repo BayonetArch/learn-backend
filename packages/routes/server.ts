@@ -3,10 +3,18 @@ import corsMiddleware from "./middleware/cors";
 import commentRouter from "./routes/comment";
 import errorHandler from "./middleware/errorHandler";
 import { stdin } from "node:process";
+import fs from "node:fs";
 stdin.setEncoding("utf-8");
 
 const app = express();
 const PORT = 5000;
+
+if (!fs.existsSync("./data/comments.json")) {
+  console.log("database doesnot exist, creating now...");
+  !fs.existsSync("./data") && fs.mkdirSync("./data");
+
+  fs.writeFileSync("./data/comments.json", "{}");
+}
 
 app.use(corsMiddleware);
 
